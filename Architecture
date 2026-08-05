@@ -1,0 +1,37 @@
+2. Create `docs/ARCHITECTURE.md`
+```bash
+cat << 'EOF' > docs/ARCHITECTURE.md
+# AWS Architecture Technical Specifications
+
+## Network Configuration Table
+
+| Subnet Name | Type | CIDR Block | Availability Zone | Route Table | Target Gateway |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **web-pub-sub1** | Public | `20.0.1.0/24` | `us-east-1a` | `route-web` | `my-igw` (IGW) |
+| **web-pub-sub2** | Public | `20.0.2.0/24` | `us-east-1b` | `route-web` | `my-igw` (IGW) |
+| **app-pvt-sub1** | Private | `20.0.3.0/24` | `us-east-1a` | `route-app` | `my-nat` (NAT) |
+| **app-pvt-sub2** | Private | `20.0.4.0/24` | `us-east-1b` | `route-app` | `my-nat` (NAT) |
+| **db-pvt-sub1** | Private | `20.0.5.0/24` | `us-east-1a` | `route-db` | `my-nat` (NAT) |
+| **db-pvt-sub2** | Private | `20.0.6.0/24` | `us-east-1b` | `route-db` | `my-nat` (NAT) |
+
+---
+
+## Security Groups Matrix
+
+| Security Group | Inbound Rules | Port / Protocol | Target Source |
+| :--- | :--- | :--- | :--- |
+| **jump-sg** | SSH, HTTP | `22`, `80` | `0.0.0.0/0` |
+| **alb-sg** | HTTP | `80` | `0.0.0.0/0` |
+| **app-sg** | SSH, All Traffic | `22`, All | `jump-sg`, `alb-sg` |
+| **db-sg** | MySQL/Aurora | `3306` | `app-sg` |
+
+---
+
+## Post-Installation Config (phpMyAdmin)
+
+After setting up the RDS database cluster, execute the following configuration on both application instances:
+
+```bash
+cd /var/www/html/phpMyAdmin
+mv config.sample.inc.php config.inc.php
+nano config.inc.php
